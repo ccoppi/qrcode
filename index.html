@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generatore QR Code</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 550px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .radio-option label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        select {
+            cursor: pointer;
+            background: white;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-download {
+            background: #28a745;
+            color: white;
+            display: none;
+        }
+
+        .btn-download:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-download.active {
+            display: block;
+        }
+
+        .qr-container {
+            margin-top: 30px;
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            display: none;
+        }
+
+        .qr-container.active {
+            display: block;
+        }
+
+        #qrcode {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-info {
+            margin-top: 15px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 1.6em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔲 Generatore QR Code</h1>
+        <p class="subtitle">Crea QR code da testo o link in pochi secondi</p>
+
+        <div class="radio-group">
+            <div class="radio-option">
+                <input type="radio" id="tipo-link" name="tipo" value="link" checked>
+                <label for="tipo-link">Link/URL</label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" id="tipo-testo" name="tipo" value="testo">
+                <label for="tipo-testo">Testo</label>
+            </div>
+        </div>
+
+        <div class="input-group" id="input-link">
+            <label for="link">Inserisci il link</label>
+            <input type="text" id="link" placeholder="https://esempio.com">
+        </div>
+
+        <div class="input-group hidden" id="input-testo">
+            <label for="testo">Inserisci il testo</label>
+            <textarea id="testo" placeholder="Scrivi qui il tuo testo..."></textarea>
+        </div>
+
+        <div class="input-group">
+            <label for="dimensione">Dimensione QR Code</label>
+            <select id="dimensione">
+                <option value="256">Piccola (256x256)</option>
+                <option value="512" selected>Media (512x512)</option>
+                <option value="1024">Grande (1024x1024)</option>
+                <option value="2048">Extra Large (2048x2048)</option>
+            </select>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-generate" onclick="generaQR()">Genera QR Code</button>
+            <button class="btn-download" id="btn-download" onclick="scaricaQR()">Scarica JPG</button>
+        </div>
+
+        <div class="qr-container" id="qr-container">
+            <div id="qrcode"></div>
+            <div class="qr-info">
+                <p>QR Code generato con successo!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let qrCodeInstance = null;
+        let currentContent = '';
+        let currentSize = 512;
+
+        // Gestione switch tra link e testo
+        document.querySelectorAll('input[name="tipo"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'link') {
+                    document.getElementById('input-link').classList.remove('hidden');
+                    document.getElementById('input-testo').classList.add('hidden');
+                } else {
+                    document.getElementById('input-link').classList.add('hidden');
+                    document.getElementById('input-testo').classList.remove('hidden');
+                }
+            });
+        });
+
+        function generaQR() {
+            const tipo = document.querySelector('input[name="tipo"]:checked').value;
+            const contenuto = tipo === 'link' 
+                ? document.getElementById('link').value.trim()
+                : document.getElementById('testo').value.trim();
+            
+            if (!contenuto) {
+                alert('Per favore inserisci un ' + (tipo === 'link' ? 'link' : 'testo') + '!');
+                return;
+            }
+
+            // Validazione URL se è un link
+            if (tipo === 'link') {
+                try {
+                    // Aggiungi https:// se manca il protocollo
+                    let url = contenuto;
+                    if (!url.match(/^https?:\/\//i)) {
+                        url = 'https://' + url;
+                        document.getElementById('link').value = url;
+                    }
+                    new URL(url);
+                } catch (e) {
+                    alert('Per favore inserisci un link valido!');
+                    return;
+                }
+            }
+
+            currentSize = parseInt(document.getElementById('dimensione').value);
+            currentContent = tipo === 'link' ? document.getElementById('link').value : contenuto;
+
+            // Pulisci il QR code precedente
+            document.getElementById('qrcode').innerHTML = '';
+
+            // Genera nuovo QR code
+            qrCodeInstance = new QRCode(document.getElementById('qrcode'), {
+                text: currentContent,
+                width: Math.min(currentSize, 400), // Dimensione di visualizzazione
+                height: Math.min(currentSize, 400),
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Mostra il container e il pulsante download
+            document.getElementById('qr-container').classList.add('active');
+            document.getElementById('btn-download').classList.add('active');
+        }
+
+        function scaricaQR() {
+            if (!currentContent) {
+                alert('Genera prima un QR code!');
+                return;
+            }
+
+            // Crea un canvas temporaneo con le dimensioni selezionate
+            const canvas = document.createElement('canvas');
+            canvas.width = currentSize;
+            canvas.height = currentSize;
+            const ctx = canvas.getContext('2d');
+
+            // Riempi lo sfondo di bianco
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, currentSize, currentSize);
+
+            // Genera un nuovo QR code ad alta risoluzione
+            const tempDiv = document.createElement('div');
+            const tempQR = new QRCode(tempDiv, {
+                text: currentContent,
+                width: currentSize,
+                height: currentSize,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Aspetta che l'immagine sia generata
+            setTimeout(() => {
+                const img = tempDiv.querySelector('img');
+                if (img) {
+                    ctx.drawImage(img, 0, 0, currentSize, currentSize);
+                    
+                    // Converti in JPG e scarica
+                    canvas.toBlob((blob) => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'qrcode_' + currentSize + 'x' + currentSize + '.jpg';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    }, 'image/jpeg', 0.95);
+                }
+            }, 100);
+        }
+
+        // Genera QR code premendo Enter
+        document.getElementById('link').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generaQR();
+            }
+        });
+
+        document.getElementById('testo').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                generaQR();
+            }
+        });
+    </script>
+</body>
+</html>
